@@ -1,5 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import {Toaster} from "sonner"
+import { ReCaptchaProvider } from "next-recaptcha-v3";
+import {AuthProvider} from "@/providers/AuthProvider"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,7 +25,12 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <Toaster theme={"dark"}/>
+        <AuthProvider>
+            <ReCaptchaProvider>
+                {children}
+            </ReCaptchaProvider>
+        </AuthProvider>
       </body>
     </html>
   );
