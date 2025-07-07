@@ -1,0 +1,77 @@
+name: app
+services:
+  caddy:
+    extends:
+      file: compose-base.yaml
+      service: caddy
+
+  redis:
+    extends:
+      file: compose-base.yaml
+      service: redis
+
+  db:
+    extends:
+      file: compose-base.yaml
+      service: db
+
+  minio:
+    extends:
+      file: compose-base.yaml
+      service: minio
+
+  backend:
+    image: jmurv/app-backend:latest-dev
+    build:
+      context: ./backend
+      dockerfile: ./build/docker/Dockerfile.dev
+    env_file: !override
+      - ./configs/envs/.env.dev
+    extends:
+      file: compose-base.yaml
+      service: backend
+    develop:
+      watch: !override
+        - action: sync
+          path: backend
+          target: /app
+          ignore:
+            - .git
+            - vendor
+
+  frontend:
+    image: jmurv/app-frontend:latest-dev
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile.dev
+    extends:
+      file: compose-base.yaml
+      service: frontend
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    environment:
+      PORT: ${FRONTEND_PORT}
+      BACKEND_URL: ${BACKEND_URL}
+      S3_URL: ${S3_URL}
+      NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${CAPTCHA_SITE_KEY}
+      NEXT_PUBLIC_RECAPTCHA_SECRET_KEY: ${CAPTCHA_SECRET}
+      NEXT_TELEMETRY_DISABLED: 1
+    develop:
+      watch: !override
+        - action: sync
+          path: frontend
+          target: /app
+          ignore:
+            - .next
+            - node_modules
+
+volumes:
+  pg_data:
+  minio_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  app:
+    name: app

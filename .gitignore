@@ -1,0 +1,6 @@
+.idea
+*~
+.env*
+!.env.example
+!.env.test
+cfg.yaml
