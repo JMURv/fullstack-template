@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 
 metadata:
-  name: app-template-backend-cfg
+  name: app-template-cfg
 
 data:
   MODE: "prod"

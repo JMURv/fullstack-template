@@ -83,7 +83,7 @@ services:
   backend:
     container_name: backend
     restart: unless-stopped
-    image: jmurv/app-backend:latest
+    image: jmurv/app-template-backend:latest
     build:
       context: ./backend
       dockerfile: ./build/docker/Dockerfile
@@ -117,7 +117,7 @@ services:
   frontend:
     container_name: frontend
     restart: unless-stopped
-    image: jmurv/app-frontend:latest
+    image: jmurv/app-template-frontend:latest
     build:
       context: ./frontend
       dockerfile: ./Dockerfile

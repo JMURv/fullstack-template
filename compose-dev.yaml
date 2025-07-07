@@ -21,7 +21,7 @@ services:
       service: minio
 
   backend:
-    image: jmurv/app-backend:latest-dev
+    image: jmurv/app-template-backend:latest-dev
     build:
       context: ./backend
       dockerfile: ./build/docker/Dockerfile.dev
@@ -40,7 +40,7 @@ services:
             - vendor
 
   frontend:
-    image: jmurv/app-frontend:latest-dev
+    image: jmurv/app-template-frontend:latest-dev
     build:
       context: ./frontend
       dockerfile: ./Dockerfile.dev

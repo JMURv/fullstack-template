@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: app-template-backend
+  labels:
+    app: app-template-backend
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-template-backend
+  template:
+    metadata:
+      labels:
+        app: app-template-backend
+    spec:
+      containers:
+        - name: app
+          image: jmurv/app-template-backend:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: app-template-cfg
+            - secretRef:
+                name: app-template-secret
+
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: grpc
+              containerPort: 50050
+            - name: metrics
+              containerPort: 8085
+
+          livenessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            httpGet:
+              path: /health
+              port: 8080
+
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            httpGet:
+              path: /health
+              port: 8080
+
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: app-template-backend
+  labels:
+    app: app-template-backend
+
+spec:
+  selector:
+    app: app-template-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      nodePort: 30080
+
+    - name: grpc
+      port: 50050
+      targetPort: 50050
+      nodePort: 30050
+
+    - name: metrics
+      port: 8085
+      targetPort: 8085
+      nodePort: 30085
+  type: NodePort
