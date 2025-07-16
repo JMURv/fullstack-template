@@ -1,4 +1,3 @@
 [submodule "backend"]
 	path = backend
 	url = https://github.com/JMURv/golang-clean-template.git
-    branch = next.js
