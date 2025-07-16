@@ -1,35 +1,50 @@
-name: app-template
+name: app-template-dev
 services:
   caddy:
     extends:
-      file: compose-base.yaml
+      file: compose.yaml
       service: caddy
+    volumes: !override
+      - ./configs/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data_dev:/data
+      - caddy_config_dev:/config
+    networks: !override [ app-template-dev ]
 
   redis:
     extends:
-      file: compose-base.yaml
+      file: compose.yaml
       service: redis
+    volumes: !override
+      - redis_data_dev:/data
+    networks: !override [ app-template-dev ]
 
   db:
     extends:
-      file: compose-base.yaml
+      file: compose.yaml
       service: db
+    volumes: !override
+      - pg_data_dev:/var/lib/postgresql/data
+    networks: !override [ app-template-dev ]
 
   minio:
     extends:
-      file: compose-base.yaml
+      file: compose.yaml
       service: minio
+    volumes: !override
+      - minio_data_dev:/data
+    networks: !override [ app-template-dev ]
 
   backend:
-    image: jmurv/app-template-backend:latest-dev
+    image: app-template-backend:latest-dev
     build:
       context: ./backend
       dockerfile: ./build/docker/Dockerfile.dev
     env_file: !override
       - ./configs/envs/.env.dev
     extends:
-      file: compose-base.yaml
+      file: compose.yaml
       service: backend
+    networks: !override [ app-template-dev ]
     develop:
       watch: !override
         - action: sync
@@ -40,15 +55,13 @@ services:
             - vendor
 
   frontend:
-    image: jmurv/app-template-frontend:latest-dev
+    image: app-template-frontend:latest-dev
     build:
       context: ./frontend
       dockerfile: ./Dockerfile.dev
     extends:
-      file: compose-base.yaml
+      file: compose.yaml
       service: frontend
-    ports:
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     environment:
       PORT: ${FRONTEND_PORT}
       BACKEND_URL: ${BACKEND_URL}
@@ -56,6 +69,7 @@ services:
       NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${CAPTCHA_SITE_KEY}
       NEXT_PUBLIC_RECAPTCHA_SECRET_KEY: ${CAPTCHA_SECRET}
       NEXT_TELEMETRY_DISABLED: 1
+    networks: !override [ app-template-dev ]
     develop:
       watch: !override
         - action: sync
@@ -65,13 +79,83 @@ services:
             - .next
             - node_modules
 
+  jaeger:
+    extends:
+      service: jaeger
+      file: compose.yaml
+    networks: !override [ app-template-dev ]
+
+  prometheus:
+    extends:
+      service: prometheus
+      file: compose.yaml
+    volumes: !override
+      - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data_dev:/prometheus
+    networks: !override [ app-template-dev ]
+
+  node-exp:
+    extends:
+      service: node-exp
+      file: compose.yaml
+    networks: !override [ app-template-dev ]
+
+  grafana:
+    extends:
+      service: grafana
+      file: compose.yaml
+    volumes: !override
+      - grafana_data_dev:/var/lib/grafana
+      - ./configs/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks: !override [ app-template-dev ]
+
+  loki:
+    extends:
+      service: loki
+      file: compose.yaml
+    volumes: !override
+      - loki_data_dev:/loki
+      - ./configs/loki:/etc/loki
+    networks: !override [ app-template-dev ]
+
+  promtail:
+    extends:
+      service: promtail
+      file: compose.yaml
+    volumes: !override
+      - ./configs/promtail:/etc/promtail
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    depends_on:
+      - loki
+    networks: !override [ app-template-dev ]
+
+  postgres-exporter:
+    extends:
+      service: postgres-exporter
+      file: compose.yaml
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: !override [ app-template-dev ]
+
+  redis-exporter:
+    extends:
+      service: redis-exporter
+      file: compose.yaml
+    networks: !override [ app-template-dev ]
+
 volumes:
-  pg_data:
-  minio_data:
-  redis_data:
-  caddy_data:
-  caddy_config:
+  pg_data_dev:
+  minio_data_dev:
+  redis_data_dev:
+  prometheus_data_dev:
+  grafana_data_dev:
+  loki_data_dev:
+  caddy_data_dev:
+  caddy_config_dev:
 
 networks:
-  app:
-    name: app
+  app-template-dev:
+    name: app-template-dev

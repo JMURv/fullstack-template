@@ -1,40 +1,65 @@
 version: 3
 
 vars:
-  DEV_ENV_FILE: "configs/envs/.env.dev"
-  DEV_DOCKER_COMPOSE_PATH: "compose-dev.yaml"
+  DEV_ENV_PATH: "configs/envs/.env.dev"
+  DEV_DC_PATH: "compose-dev.yaml"
 
-  PROD_ENV_FILE: "configs/envs/.env.prod"
-  PROD_DOCKER_COMPOSE_PATH: "compose-base.yaml"
+  PROD_ENV_PATH: "configs/envs/.env.prod"
+  PROD_DC_PATH: "compose.yaml"
 
   TEST_ENV_FILE: "configs/envs/.env.test"
   TEST_DOCKER_COMPOSE_PATH: "compose-test.yaml"
 
 tasks:
+  dc-prod:
+    desc: Run prod compose
+    cmds:
+      - "docker compose --env-file {{.PROD_ENV_PATH}} -f {{.PROD_DC_PATH}} up --watch"
+
+  dc-prod-build:
+    desc: Build prod compose
+    cmds:
+      - "docker compose --env-file {{.PROD_ENV_PATH}} -f {{.PROD_DC_PATH}} up --build --watch"
+
+  dc-prod-down:
+    desc: Shutdown prod compose
+    cmds:
+      - "docker compose --env-file {{.PROD_ENV_PATH}} -f {{.PROD_DC_PATH}} down"
+
+  dc-prod-obs:
+    desc: Run prod compose with observe
+    cmds:
+      - "docker compose --env-file {{.PROD_ENV_PATH}} -f {{.PROD_DC_PATH}} --profile observe up --watch"
+
+  dc-prod-obs-down:
+    desc: Shutdown prod compose with observe containers
+    cmds:
+      - "docker compose --env-file {{.PROD_ENV_PATH}} -f {{.PROD_DC_PATH}} --profile observe down"
+
   dc-dev:
     desc: Run dev compose
     cmds:
-      - "docker compose --env-file {{.DEV_ENV_FILE}} -f {{.DEV_DOCKER_COMPOSE_PATH}} up --watch"
+      - "docker compose --env-file {{.DEV_ENV_PATH}} -f {{.DEV_DC_PATH}} up --watch"
 
   dc-dev-build:
     desc: Run dev compose
     cmds:
-      - "docker compose --env-file {{.DEV_ENV_FILE}} -f {{.DEV_DOCKER_COMPOSE_PATH}} up --build --watch"
+      - "docker compose --env-file {{.DEV_ENV_PATH}} -f {{.DEV_DC_PATH}} up --build --watch"
 
   dc-dev-down:
     desc: Shutdown dev compose
     cmds:
-      - "docker compose --env-file {{.DEV_ENV_FILE}} -f {{.DEV_DOCKER_COMPOSE_PATH}} down"
+      - "docker compose --env-file {{.DEV_ENV_PATH}} -f {{.DEV_DC_PATH}} down"
 
-  dc-test:
-    desc: Run integration tests helper containers
+  dc-dev-obs:
+    desc: Run dev compose with observe
     cmds:
-      - "docker compose --env-file {{.TEST_ENV_FILE}} -f {{.TEST_DOCKER_COMPOSE_PATH}} up"
+      - "docker compose --env-file {{.DEV_ENV_PATH}} -f {{.DEV_DC_PATH}} --profile observe up --watch"
 
-  dc-test-down:
-    desc: Shutdown integration tests helper containers
+  dc-dev-obs-down:
+    desc: Shutdown dev compose with observe containers
     cmds:
-      - "docker compose -f {{.TEST_DOCKER_COMPOSE_PATH}} down"
+      - "docker compose --env-file {{.DEV_ENV_PATH}} -f {{.DEV_DC_PATH}} --profile observe down"
 
   k-up:
     desc: Run k8s manifests
